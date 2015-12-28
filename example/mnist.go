@@ -95,7 +95,7 @@ func main() {
 		o.Activate()
 	}
 
-	cr := make([]chan float64, len(out))
+	cr := make([]<-chan float64, len(out))
 	for i := range cr {
 		cr[i] = nn.Subscribe(out[i])
 	}

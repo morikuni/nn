@@ -63,7 +63,7 @@ func (i *Input) Connect(o *Output) *Link {
 	return l
 }
 
-func (i *Input) sum() chan float64 {
+func (i *Input) sum() <-chan float64 {
 	c := make(chan float64, 1)
 	go func() {
 		sum := 0.0

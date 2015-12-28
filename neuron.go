@@ -62,7 +62,7 @@ func (neuron *Neuron) OnReceive(receiveHandler func(*Neuron, float64)) {
 }
 
 // Subscribe make a channel that receive a output of the Neuron
-func Subscribe(neuron *Neuron) chan float64 {
+func Subscribe(neuron *Neuron) <-chan float64 {
 	l := neuron.Out.subscribe()
 	return l.c
 }
