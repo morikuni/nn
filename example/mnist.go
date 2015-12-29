@@ -6,7 +6,6 @@ import (
 	"github.com/morikuni/nn/mnist"
 	"math/rand"
 	"os"
-	"time"
 )
 
 func toBin(v float64) int {
@@ -26,18 +25,20 @@ func toFlag(n uint8) [10]float64 {
 func main() {
 	const (
 		ALPHA       = 0.5
-		MAX_LOOP    = 60000
+		TRAIN_LOOP  = 60000
+		EVAL_LOOP   = 10000
 		HIDDEN_SIZE = 15
 	)
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(123)
 
 	trainSc, err := mnist.Open(os.Args[1], os.Args[2])
 	if err != nil {
 		fmt.Errorf("Error: %v", err)
 	}
-	trainData := make([][]float64, 60000)
-	trainExpect := make([][]float64, 60000)
-	for i := 0; trainSc.Next(); i++ {
+	trainData := make([][]float64, TRAIN_LOOP)
+	trainExpect := make([][]float64, TRAIN_LOOP)
+	for i := 0; i < TRAIN_LOOP; i++ {
+		trainSc.Next()
 		image := trainSc.Image()
 		trainData[i] = make([]float64, 28*28)
 		for j, v := range image.Buffer {
@@ -51,9 +52,10 @@ func main() {
 	if err != nil {
 		fmt.Errorf("Error: %v", err)
 	}
-	evalData := make([][]float64, 10000)
-	evalExpect := make([][]float64, 10000)
-	for i := 0; evalSc.Next(); i++ {
+	evalData := make([][]float64, EVAL_LOOP)
+	evalExpect := make([][]float64, EVAL_LOOP)
+	for i := 0; i < EVAL_LOOP; i++ {
+		evalSc.Next()
 		image := evalSc.Image()
 		evalData[i] = make([]float64, 28*28)
 		for j, v := range image.Buffer {
@@ -63,37 +65,26 @@ func main() {
 		evalExpect[i] = flag[:]
 	}
 
-	in := make([]*nn.Neuron, len(trainData[0]))
-	for i := range in {
-		in[i] = new(nn.Neuron)
+	il := nn.NewLayer(len(trainData[0]))
+	hl := nn.NewLayer(HIDDEN_SIZE)
+	ol := nn.NewLayer(len(trainExpect[0]))
+
+	in := make([]nn.Output, len(trainData[0]))
+	for ii, i := range il.Inputs() {
+		i.OnReceive(func(n *nn.Neuron, v float64) {
+			n.Out.Send(v)
+		})
+		i.In.Register(&in[ii])
 	}
 
-	hidden := make([]*nn.Neuron, HIDDEN_SIZE)
-	for i := range hidden {
-		hidden[i] = new(nn.Neuron)
-	}
-
-	out := make([]*nn.Neuron, len(trainExpect[0]))
-	for i := range out {
-		out[i] = new(nn.Neuron)
-	}
-
-	il := new(nn.Layer)
-	il.Add(in...)
-	hl := new(nn.Layer)
-	hl.Add(hidden...)
-	ol := new(nn.Layer)
-	ol.Add(out...)
+	out := ol.Outputs()
 
 	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)
 	nn.ConnectRandomWeight(hl, ol, -0.1, 0.1)
 
-	for _, h := range hidden {
-		h.Activate()
-	}
-	for _, o := range out {
-		o.Activate()
-	}
+	il.Activate()
+	hl.Activate()
+	ol.Activate()
 
 	subs := make([]nn.Subscription, len(out))
 	for i := range subs {
@@ -104,7 +95,7 @@ func main() {
 	for di := range trainData {
 
 		for i, x := range in {
-			x.Out.Send(trainData[di][i])
+			x.Send(trainData[di][i])
 		}
 
 		r := make([]float64, len(subs))
@@ -127,7 +118,7 @@ func main() {
 	fail := 0
 	for i := range evalData {
 		for j, x := range in {
-			x.Out.Send(evalData[i][j])
+			x.Send(evalData[i][j])
 		}
 
 		r := make([]float64, len(subs))

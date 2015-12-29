@@ -4,7 +4,6 @@ import (
 	"fmt"
 	"github.com/morikuni/nn"
 	"math/rand"
-	"time"
 )
 
 func toBin(v float64) int {
@@ -22,7 +21,7 @@ func main() {
 		EPS         = 0.2
 		HIDDEN_SIZE = 2
 	)
-	rand.Seed(time.Now().UnixNano())
+	rand.Seed(123)
 
 	data := [][]float64{
 		{0, 0, 0},
@@ -45,37 +44,26 @@ func main() {
 		{1, 1},
 	}
 
-	in := make([]*nn.Neuron, len(data[0]))
-	for i := range in {
-		in[i] = new(nn.Neuron)
+	il := nn.NewLayer(len(data[0]))
+	hl := nn.NewLayer(HIDDEN_SIZE)
+	ol := nn.NewLayer(len(expect[0]))
+
+	in := make([]nn.Output, len(data[0]))
+	for ii, i := range il.Inputs() {
+		i.OnReceive(func(n *nn.Neuron, v float64) {
+			n.Out.Send(v)
+		})
+		i.In.Register(&in[ii])
 	}
 
-	hidden := make([]*nn.Neuron, HIDDEN_SIZE)
-	for i := range hidden {
-		hidden[i] = new(nn.Neuron)
-	}
-
-	out := make([]*nn.Neuron, len(expect[0]))
-	for i := range out {
-		out[i] = new(nn.Neuron)
-	}
-
-	il := new(nn.Layer)
-	il.Add(in...)
-	hl := new(nn.Layer)
-	hl.Add(hidden...)
-	ol := new(nn.Layer)
-	ol.Add(out...)
+	out := ol.Outputs()
 
 	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)
 	nn.ConnectRandomWeight(hl, ol, -0.1, 0.1)
 
-	for _, h := range hidden {
-		h.Activate()
-	}
-	for _, o := range out {
-		o.Activate()
-	}
+	il.Activate()
+	hl.Activate()
+	ol.Activate()
 
 	subs := make([]nn.Subscription, len(out))
 	for i := range subs {
@@ -87,7 +75,7 @@ func main() {
 		n := rand.Intn(len(data))
 
 		for i, x := range in {
-			x.Out.Send(data[n][i])
+			x.Send(data[n][i])
 		}
 
 		r := make([]float64, len(subs))
@@ -108,7 +96,7 @@ func main() {
 		se := 0.0
 		for i := range data {
 			for j, x := range in {
-				x.Out.Send(data[i][j])
+				x.Send(data[i][j])
 			}
 
 			r := make([]float64, len(subs))
@@ -129,7 +117,7 @@ func main() {
 	//結果
 	for i := range data {
 		for j, x := range in {
-			x.Out.Send(data[i][j])
+			x.Send(data[i][j])
 		}
 
 		r := make([]float64, len(subs))

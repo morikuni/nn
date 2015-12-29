@@ -51,6 +51,17 @@ type Layer struct {
 	Neurons []*Neuron
 }
 
+// NewLayer create Layer with specified size Neurons.
+func NewLayer(size int) *Layer {
+	ns := make([]*Neuron, size)
+	for i := range ns {
+		ns[i] = new(Neuron)
+	}
+	return &Layer{
+		Neurons: ns,
+	}
+}
+
 // Add add Neuron to a the Layer.
 func (layer *Layer) Add(ns ...*Neuron) {
 	layer.m.Lock()
