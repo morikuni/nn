@@ -67,8 +67,8 @@ func main() {
 	ol := new(nn.Layer)
 	ol.Add(out...)
 
-	il.ConnectRandomWeight(hl, -0.1, 0.1)
-	hl.ConnectRandomWeight(ol, -0.1, 0.1)
+	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)
+	nn.ConnectRandomWeight(hl, ol, -0.1, 0.1)
 
 	for _, h := range hidden {
 		h.Activate()

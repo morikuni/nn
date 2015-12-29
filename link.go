@@ -55,7 +55,7 @@ func (o *Output) subscribe() *Link {
 type Input adapter
 
 // Connect connect Output as a input.
-func (i *Input) Connect(o *Output) *Link {
+func (i *Input) Register(o *Output) *Link {
 	l := o.subscribe()
 	i.m.Lock()
 	i.Links = append(i.Links, l)
