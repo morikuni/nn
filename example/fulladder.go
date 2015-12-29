@@ -44,23 +44,20 @@ func main() {
 		{1, 1},
 	}
 
-	il := nn.NewLayer(len(data[0]))
+	il := nn.NewPublisher(len(data[0]))
 	hl := nn.NewLayer(HIDDEN_SIZE)
 	ol := nn.NewLayer(len(expect[0]))
 
-	in := il.Outputs()
+	in := il.Publications()
 
 	out := ol.Outputs()
 
 	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)
 	nn.ConnectRandomWeight(hl, ol, -0.1, 0.1)
 
+	il.Activate()
 	hl.Activate()
 	ol.Activate()
-
-	for _, i := range in {
-		fmt.Println(i)
-	}
 
 	subs := make([]nn.Subscription, len(out))
 	for i := range subs {

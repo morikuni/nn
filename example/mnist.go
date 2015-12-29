@@ -65,11 +65,11 @@ func main() {
 		evalExpect[i] = flag[:]
 	}
 
-	il := nn.NewLayer(len(trainData[0]))
+	il := nn.NewPublisher(len(trainData[0]))
 	hl := nn.NewLayer(HIDDEN_SIZE)
 	ol := nn.NewLayer(len(trainExpect[0]))
 
-	in := il.Outputs()
+	in := il.Publications()
 	out := ol.Outputs()
 
 	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)

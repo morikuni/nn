@@ -123,3 +123,55 @@ func onBackProp(n *Neuron, err, rate float64) []BackError {
 	n.Bias += rate * err
 	return bes
 }
+
+// Publisher is dummy Layer to send a value
+type Publisher struct {
+	os []*Output
+}
+
+// NewPublisher create Publisher with specified size Publication.
+func NewPublisher(size int) *Publisher {
+	os := make([]*Output, size)
+	for i := range os {
+		os[i] = &Output{}
+	}
+	return &Publisher{os}
+}
+
+// Activate is a implementation of Group.
+func (p *Publisher) Activate() {
+}
+
+// Inputs is a implementation of Group.
+func (p *Publisher) Inputs() []*Input {
+	return []*Input{}
+}
+
+// Outputs is a implementation of Group.
+func (p *Publisher) Outputs() []*Output {
+	return p.os
+}
+
+// BackProp is a implementation of Group.
+func (p *Publisher) BackProp(errs []BackError, rate float64) []BackError {
+	return []BackError{}
+}
+
+// Publications return slice of Publication pointer.
+func (p *Publisher) Publications() []*Publication {
+	ps := make([]*Publication, len(p.os))
+	for i, o := range p.os {
+		ps[i] = &Publication{o}
+	}
+	return ps
+}
+
+// Publication is used to send a value.
+type Publication struct {
+	o *Output
+}
+
+// Send send a value to all connected Links.
+func (p *Publication) Send(v float64) {
+	p.o.Send(v)
+}
