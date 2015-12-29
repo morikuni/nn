@@ -25,8 +25,10 @@ func defaultHandler(n *Neuron, f float64) {
 	n.Out.Send(n.ActivationFunction(f + n.Bias))
 }
 
-// Activate activate the Neuron.
-// Activated Neuron wait a input and handle sum of input.
+/*
+Activate activate the Neuron.
+Activated Neuron wait a input and handle a sum of input.
+*/
 func (neuron *Neuron) Activate() {
 	if neuron.receiveHandler == nil {
 		neuron.receiveHandler = defaultHandler
@@ -59,10 +61,4 @@ func (neuron *Neuron) OnReceive(receiveHandler func(*Neuron, float64)) {
 	neuron.m.Lock()
 	neuron.receiveHandler = receiveHandler
 	neuron.m.Unlock()
-}
-
-// Subscribe make a channel that receive a output of the Neuron
-func Subscribe(neuron *Neuron) <-chan float64 {
-	l := neuron.Out.subscribe()
-	return l.c
 }

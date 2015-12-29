@@ -7,14 +7,23 @@ import (
 
 // Group is a group of Neurons.
 type Group interface {
-	// Activate activate all Neurons of the group.
+	// Activate activate all Neurons of the Group.
 	Activate()
 
-	// Inputs return Neurons that are used as input of the group.
+	// Inputs return Neurons that are used as input of the Group.
 	Inputs() []*Neuron
 
-	// Inputs return Neurons that are used as output of the group.
+	// Inputs return Neurons that are used as output of the Group.
 	Outputs() []*Neuron
+
+	// BackProp update all Link weights of the Group with learning rate. Then return Errors of previous(input) Group.
+	BackProp([]BackError, float64) []BackError
+}
+
+// BackError contain error of Output of the Group.
+type BackError struct {
+	link *Link
+	err  float64
 }
 
 // Connect connect all Outputs of the group to all Inputs of other group.
@@ -64,4 +73,28 @@ func (layer *Layer) Inputs() []*Neuron {
 // Outputs is a implementation of Group.
 func (layer *Layer) Outputs() []*Neuron {
 	return layer.Neurons
+}
+
+// BackProp is a implementation of Group.
+func (layer *Layer) BackProp(errs []BackError, rate float64) []BackError {
+	var res []BackError
+	for _, n := range layer.Neurons {
+		en := 0.0
+		for _, ol := range n.Out.Links {
+			for _, err := range errs {
+				if err.link == ol {
+					en += err.err
+				}
+			}
+		}
+		for _, il := range n.In.Links {
+			res = append(res, BackError{
+				il,
+				en * il.Weight * il.Last() * (1 - il.Last()),
+			})
+			il.Weight += rate * en * il.Last()
+		}
+		n.Bias += rate * en
+	}
+	return res
 }

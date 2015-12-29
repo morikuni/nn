@@ -77,9 +77,9 @@ func main() {
 		o.Activate()
 	}
 
-	cr := make([]<-chan float64, len(out))
-	for i := range cr {
-		cr[i] = nn.Subscribe(out[i])
+	subs := make([]nn.Subscription, len(out))
+	for i := range subs {
+		subs[i] = out[i].Out.Subscribe()
 	}
 
 	//学習
@@ -90,41 +90,19 @@ func main() {
 			x.Out.Send(data[n][i])
 		}
 
-		r := make([]float64, len(cr))
-		for ci, c := range cr {
-			r[ci] = <-c
+		r := make([]float64, len(subs))
+		for si, s := range subs {
+			r[si] = <-s.Result()
 		}
 
 		// 出力層の誤差
-		eo := make([]float64, len(out))
+		eo := make([]nn.BackError, len(out))
 		for oi := range out {
-			eo[oi] = (expect[n][oi] - r[oi]) * r[oi] * (1 - r[oi])
+			eo[oi] = subs[oi].Error(expect[n][oi] - r[oi])
 		}
 
-		// 隠れ層の誤差
-		eh := make([]float64, len(hidden))
-		for hi, h := range hidden {
-			for oi, o := range out {
-				link, _ := h.FindLinkTo(o)
-				eh[hi] += eo[oi] * link.Weight * link.Last() * (1 - link.Last())
-			}
-		}
-
-		// 出力層の更新
-		for oi, o := range out {
-			o.Bias += ALPHA * eo[oi]
-			for _, l := range o.In.Links {
-				l.Weight += ALPHA * eo[oi] * l.Last()
-			}
-		}
-
-		// 隠れ層の更新
-		for hi, h := range hidden {
-			h.Bias += ALPHA * eh[hi]
-			for _, l := range h.In.Links {
-				l.Weight += ALPHA * eh[hi] * l.Last()
-			}
-		}
+		eh := ol.BackProp(eo, ALPHA)
+		hl.BackProp(eh, ALPHA)
 
 		// 全ての入力について2乗誤差を足す
 		se := 0.0
@@ -133,9 +111,9 @@ func main() {
 				x.Out.Send(data[i][j])
 			}
 
-			r := make([]float64, len(cr))
-			for ci, c := range cr {
-				r[ci] = <-c
+			r := make([]float64, len(subs))
+			for si, s := range subs {
+				r[si] = <-s.Result()
 			}
 			for oi := range out {
 				s := (expect[i][oi] - r[oi])
@@ -154,9 +132,9 @@ func main() {
 			x.Out.Send(data[i][j])
 		}
 
-		r := make([]float64, len(cr))
-		for ci, c := range cr {
-			r[ci] = <-c
+		r := make([]float64, len(subs))
+		for si, s := range subs {
+			r[si] = <-s.Result()
 		}
 
 		fmt.Print(" input( ")

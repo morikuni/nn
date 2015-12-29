@@ -51,10 +51,35 @@ func (o *Output) subscribe() *Link {
 	return l
 }
 
+// Subscribe make a Subscription.
+func (o *Output) Subscribe() Subscription {
+	return Subscription{
+		o.subscribe(),
+	}
+}
+
+// Subscription is output receiver. and create BackError.
+type Subscription struct {
+	l *Link
+}
+
+// Result make a channel that receive a output.
+func (s *Subscription) Result() <-chan float64 {
+	return s.l.c
+}
+
+// Error create a BackError that notify error to Group.
+func (s *Subscription) Error(e float64) BackError {
+	return BackError{
+		s.l,
+		e,
+	}
+}
+
 // Input is Neuron's input.
 type Input adapter
 
-// Connect connect Output as a input.
+// Register connect a Output as a input.
 func (i *Input) Register(o *Output) *Link {
 	l := o.subscribe()
 	i.m.Lock()
