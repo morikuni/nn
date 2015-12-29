@@ -77,7 +77,7 @@ func (layer *Layer) Outputs() []*Neuron {
 
 // BackProp is a implementation of Group.
 func (layer *Layer) BackProp(errs []BackError, rate float64) []BackError {
-	var res []BackError
+	var bes []BackError
 	for _, n := range layer.Neurons {
 		en := 0.0
 		for _, ol := range n.Out.Links {
@@ -87,14 +87,20 @@ func (layer *Layer) BackProp(errs []BackError, rate float64) []BackError {
 				}
 			}
 		}
-		for _, il := range n.In.Links {
-			res = append(res, BackError{
-				il,
-				en * il.Weight * il.Last() * (1 - il.Last()),
-			})
-			il.Weight += rate * en * il.Last()
-		}
-		n.Bias += rate * en
+		bes = append(bes, onBackProp(n, en, rate)...)
 	}
-	return res
+	return bes
+}
+
+func onBackProp(n *Neuron, err, rate float64) []BackError {
+	bes := make([]BackError, len(n.In.Links))
+	for i, l := range n.In.Links {
+		bes[i] = BackError{
+			l,
+			err * l.Weight * l.Last() * (1 - l.Last()),
+		}
+		l.Weight += rate * err * l.Last()
+	}
+	n.Bias += rate * err
+	return bes
 }
