@@ -19,7 +19,7 @@ func main() {
 		ALPHA       = 0.5
 		MAX_LOOP    = 100000
 		EPS         = 0.2
-		HIDDEN_SIZE = 2
+		HIDDEN_SIZE = 3
 	)
 	rand.Seed(123)
 
@@ -48,26 +48,23 @@ func main() {
 	hl := nn.NewLayer(HIDDEN_SIZE)
 	ol := nn.NewLayer(len(expect[0]))
 
-	in := make([]nn.Output, len(data[0]))
-	for ii, i := range il.Inputs() {
-		i.OnReceive(func(n *nn.Neuron, v float64) {
-			n.Out.Send(v)
-		})
-		i.In.Register(&in[ii])
-	}
+	in := il.Outputs()
 
 	out := ol.Outputs()
 
 	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)
 	nn.ConnectRandomWeight(hl, ol, -0.1, 0.1)
 
-	il.Activate()
 	hl.Activate()
 	ol.Activate()
 
+	for _, i := range in {
+		fmt.Println(i)
+	}
+
 	subs := make([]nn.Subscription, len(out))
 	for i := range subs {
-		subs[i] = out[i].Out.Subscribe()
+		subs[i] = out[i].Subscribe()
 	}
 
 	//学習

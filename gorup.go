@@ -11,10 +11,10 @@ type Group interface {
 	Activate()
 
 	// Inputs return Neurons that are used as input of the Group.
-	Inputs() []*Neuron
+	Inputs() []*Input
 
 	// Inputs return Neurons that are used as output of the Group.
-	Outputs() []*Neuron
+	Outputs() []*Output
 
 	// BackProp update all Link weights of the Group with learning rate. Then return Errors of previous(input) Group.
 	BackProp([]BackError, float64) []BackError
@@ -28,18 +28,18 @@ type BackError struct {
 
 // Connect connect all Outputs of the group to all Inputs of other group.
 func Connect(from, to Group) {
-	for _, fn := range from.Outputs() {
-		for _, tn := range to.Inputs() {
-			tn.In.Register(&fn.Out)
+	for _, o := range from.Outputs() {
+		for _, i := range to.Inputs() {
+			i.Register(o)
 		}
 	}
 }
 
 // ConnectRandomWeight is same as Connect, but Link weights are randomized.
 func ConnectRandomWeight(from, to Group, min, max float64) {
-	for _, fn := range from.Outputs() {
-		for _, tn := range to.Inputs() {
-			l := tn.In.Register(&fn.Out)
+	for _, o := range from.Outputs() {
+		for _, i := range to.Inputs() {
+			l := i.Register(o)
 			l.Weight = (max-min)*rand.Float64() + min
 		}
 	}
@@ -77,13 +77,21 @@ func (layer *Layer) Activate() {
 }
 
 // Inputs is a implementation of Group.
-func (layer *Layer) Inputs() []*Neuron {
-	return layer.Neurons
+func (layer *Layer) Inputs() []*Input {
+	is := make([]*Input, len(layer.Neurons))
+	for i := range is {
+		is[i] = &layer.Neurons[i].In
+	}
+	return is
 }
 
 // Outputs is a implementation of Group.
-func (layer *Layer) Outputs() []*Neuron {
-	return layer.Neurons
+func (layer *Layer) Outputs() []*Output {
+	os := make([]*Output, len(layer.Neurons))
+	for i := range os {
+		os[i] = &layer.Neurons[i].Out
+	}
+	return os
 }
 
 // BackProp is a implementation of Group.

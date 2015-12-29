@@ -25,8 +25,8 @@ func toFlag(n uint8) [10]float64 {
 func main() {
 	const (
 		ALPHA       = 0.5
-		TRAIN_LOOP  = 60000
-		EVAL_LOOP   = 10000
+		TRAIN_LOOP  = 1000
+		EVAL_LOOP   = 1000
 		HIDDEN_SIZE = 15
 	)
 	rand.Seed(123)
@@ -69,26 +69,18 @@ func main() {
 	hl := nn.NewLayer(HIDDEN_SIZE)
 	ol := nn.NewLayer(len(trainExpect[0]))
 
-	in := make([]nn.Output, len(trainData[0]))
-	for ii, i := range il.Inputs() {
-		i.OnReceive(func(n *nn.Neuron, v float64) {
-			n.Out.Send(v)
-		})
-		i.In.Register(&in[ii])
-	}
-
+	in := il.Outputs()
 	out := ol.Outputs()
 
 	nn.ConnectRandomWeight(il, hl, -0.1, 0.1)
 	nn.ConnectRandomWeight(hl, ol, -0.1, 0.1)
 
-	il.Activate()
 	hl.Activate()
 	ol.Activate()
 
 	subs := make([]nn.Subscription, len(out))
 	for i := range subs {
-		subs[i] = out[i].Out.Subscribe()
+		subs[i] = out[i].Subscribe()
 	}
 
 	//学習
