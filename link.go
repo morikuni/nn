@@ -76,6 +76,16 @@ func (s *Subscription) Error(e float64) BackError {
 	}
 }
 
+// Publication is used to send a value.
+type Publication struct {
+	o *Output
+}
+
+// Send send a value to all connected Links.
+func (p *Publication) Send(v float64) {
+	p.o.Send(v)
+}
+
 // Input is Neuron's input.
 type Input adapter
 
@@ -98,4 +108,11 @@ func (i *Input) sum() <-chan float64 {
 		c <- sum
 	}()
 	return c
+}
+
+// Publish create a Publication.
+func (i *Input) Publish() Publication {
+	o := new(Output)
+	i.Register(o)
+	return Publication{o}
 }

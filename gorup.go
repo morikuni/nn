@@ -158,20 +158,10 @@ func (p *Publisher) BackProp(errs []BackError, rate float64) []BackError {
 }
 
 // Publications return slice of Publication pointer.
-func (p *Publisher) Publications() []*Publication {
-	ps := make([]*Publication, len(p.os))
+func (p *Publisher) Publications() []Publication {
+	ps := make([]Publication, len(p.os))
 	for i, o := range p.os {
-		ps[i] = &Publication{o}
+		ps[i] = Publication{o}
 	}
 	return ps
-}
-
-// Publication is used to send a value.
-type Publication struct {
-	o *Output
-}
-
-// Send send a value to all connected Links.
-func (p *Publication) Send(v float64) {
-	p.o.Send(v)
 }
