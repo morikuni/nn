@@ -36,7 +36,7 @@ func main() {
 		fmt.Errorf("Error: %v", err)
 	}
 	trainData := make([][]float64, TRAIN_LOOP)
-	trainExpect := make([][]float64, TRAIN_LOOP)
+	trainExpect := make([][10]float64, TRAIN_LOOP)
 	for i := 0; i < TRAIN_LOOP; i++ {
 		trainSc.Next()
 		image := trainSc.Image()
@@ -44,8 +44,7 @@ func main() {
 		for j, v := range image.Buffer {
 			trainData[i][j] = float64(v) / 255
 		}
-		flag := toFlag(image.Label)
-		trainExpect[i] = flag[:]
+		trainExpect[i] = toFlag(image.Label)
 	}
 
 	evalSc, err := mnist.Open(os.Args[3], os.Args[4])
@@ -53,7 +52,7 @@ func main() {
 		fmt.Errorf("Error: %v", err)
 	}
 	evalData := make([][]float64, EVAL_LOOP)
-	evalExpect := make([][]float64, EVAL_LOOP)
+	evalExpect := make([][10]float64, EVAL_LOOP)
 	for i := 0; i < EVAL_LOOP; i++ {
 		evalSc.Next()
 		image := evalSc.Image()
@@ -61,8 +60,7 @@ func main() {
 		for j, v := range image.Buffer {
 			evalData[i][j] = float64(v) / 255
 		}
-		flag := toFlag(image.Label)
-		evalExpect[i] = flag[:]
+		evalExpect[i] = toFlag(image.Label)
 	}
 
 	defer func() {
