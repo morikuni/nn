@@ -3,7 +3,7 @@ nn helps creating Neural Network.
 
 All neurons running on goroutine.
 
-# Example
+## Example
 
 First neuron receive a value `1` then return a result by activation function.
 Second neuron receive a result of first neuron then return a result.
@@ -103,3 +103,66 @@ func main() {
 // 0.6508370683765821
 ```
 
+## mnist
+
+Submodule mnist loads MNIST handwritten digit data.
+
+```go
+package main
+
+import (
+	"fmt"
+	"github.com/morikuni/nn/mnist"
+)
+
+func main() {
+	sc, err := mnist.Open("/path/to/train-images-idx3-ubyte", "/path/to/train-labels-idx1-ubyte")
+
+	if err != nil {
+		fmt.Errorf("%v", err)
+	}
+
+	if sc.Next() {
+		image := sc.Image()
+		fmt.Println("label", image.Label)
+		fmt.Println("value at (x = 15, y = 15) = ", image.At(15, 15))
+		image.Print()
+	}
+}
+```
+
+output
+
+```
+label 5
+value at (x = 15, y = 15) = 186
+
+
+
+
+
+                +++ +##+
+           ++######+##+
+        ##########
+        ######++##
+         ++###   +
+           +#
+           +#+
+            +#
+             ##++
+              ###+
+               +##+
+                 ##+
+                 ###
+               ++###
+             +#####+
+           +######
+          #####+
+       +#####+
+     +######+
+    +####++
+
+
+
+
+```
