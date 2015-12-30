@@ -25,8 +25,8 @@ func toFlag(n uint8) [10]float64 {
 func main() {
 	const (
 		ALPHA       = 0.5
-		TRAIN_LOOP  = 1000
-		EVAL_LOOP   = 1000
+		TRAIN_LOOP  = 60000
+		EVAL_LOOP   = 10000
 		HIDDEN_SIZE = 15
 	)
 	rand.Seed(123)
@@ -64,6 +64,11 @@ func main() {
 		flag := toFlag(image.Label)
 		evalExpect[i] = flag[:]
 	}
+
+	defer func() {
+		trainSc.Close()
+		evalSc.Close()
+	}()
 
 	il := nn.NewPublisher(len(trainData[0]))
 	hl := nn.NewLayer(HIDDEN_SIZE)

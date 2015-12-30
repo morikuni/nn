@@ -75,6 +75,11 @@ func (scanner *Scanner) Image() *Image {
 	return scanner.next
 }
 
+func (scanner *Scanner) Close() {
+	scanner.image.Close()
+	scanner.label.Close()
+}
+
 // Open open
 func Open(image, label string) (*Scanner, error) {
 	imageFile, err := os.Open(image)
